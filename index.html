@@ -14,12 +14,17 @@
   <div class="bg-grid" aria-hidden="true"></div>
 
   <header>
-    <a href="/" class="logo">
-      <img src="1.png" alt="" class="logo-img" width="32" height="32">
-      <span>d1ckochart</span>
-    </a>
+    <div class="header-left">
+      <a href="/" class="logo">
+        <img src="img/1.png" alt="" class="logo-img" width="32" height="32">
+        <span>d1ckochart</span>
+      </a>
+      <select id="feedSelect" class="header-select" aria-label="Select pair"></select>
+      <select id="headSelect" class="header-select" aria-label="Select head"></select>
+    </div>
     <div class="header-badges">
       <button type="button" class="header-btn" id="faqBtn">FAQ</button>
+      <button type="button" class="header-btn" id="changelogBtn">Changelog</button>
       <a href="?test=1" class="header-btn" id="testEnvLink">Test</a>
     </div>
   </header>
@@ -28,20 +33,40 @@
     <div class="faq-content">
       <button type="button" class="faq-close" id="faqClose" aria-label="Close">×</button>
       <h2>FAQ</h2>
-      <p>Indicator moves with real-time BTC/USD price (Pyth Network). Price up → indicator up; price down → indicator down. Green = price rising, red = falling. Price is split into 10k bands (e.g. 70k–80k); position within the band sets angle and size.</p>
+      <p>Indicator moves with real-time price (Pyth Network). Price up → indicator up; price down → indicator down. Green = rising, red = falling. Position within the band sets angle and size.</p>
+      <p class="faq-cycles-title"><strong>Cycles (band per pair):</strong></p>
+      <ul class="faq-cycles">
+        <li>BTC 0–10,000</li>
+        <li>ETH 0–1,000</li>
+        <li>SOL 0–20</li>
+        <li>BNB 0–100</li>
+        <li>HYPE 0–20</li>
+        <li>PYTH 0–0.1</li>
+        <li>FOGO 0–0.1</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="changelogModal" class="faq-modal" hidden>
+    <div class="faq-content changelog-content">
+      <button type="button" class="faq-close" id="changelogClose" aria-label="Close">×</button>
+      <h2>Changelog</h2>
+      <ul class="changelog-list">
+        <li><time datetime="2026-03-10">Mar 10, 2026</time> — Beta release</li>
+      </ul>
     </div>
   </div>
 
   <main>
     <div class="character-wrap">
       <div class="price-block">
-        <div class="price-label">BTC/USD</div>
+        <div class="price-label" id="priceLabel">—</div>
         <div class="price-value loading" id="priceEl">Loading...</div>
       </div>
       <div class="character">
-        <img src="1.png" alt="" class="head-img" width="240" height="240">
+        <img id="headImg" src="img/1.png" alt="" class="head-img" width="240" height="240">
         <div class="body-wrap">
-          <img src="2.png" alt="" class="body-img" width="120" height="200">
+          <img src="img/body.png" alt="" class="body-img" width="120" height="200">
           <div class="indicator-wrap" id="indicatorWrap">
             <div class="indicator"></div>
           </div>
@@ -50,6 +75,7 @@
     </div>
 
     <div id="test-panel" class="test-panel" hidden>
+      <p class="test-panel-intro">Slider: position in cycle (0→1). Direction: up/down.</p>
       <label class="test-row">
         <span>t (0→1)</span>
         <input type="range" id="testT" min="0" max="100" value="50" step="1">
@@ -60,7 +86,6 @@
         <button type="button" id="testUp" class="test-btn test-btn-up">↑ up</button>
         <button type="button" id="testDown" class="test-btn test-btn-down">↓ down</button>
       </div>
-      <p class="test-row"><span>Price</span> <span id="testPriceSim">$75,000</span></p>
     </div>
   </main>
 

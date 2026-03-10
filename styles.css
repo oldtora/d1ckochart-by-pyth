@@ -43,12 +43,20 @@ body {
 
 header {
   flex-shrink: 0;
+  position: relative;
+  z-index: 50;
   padding: 0.75rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .logo {
@@ -105,6 +113,22 @@ header {
   background: rgba(0,212,170,0.1);
 }
 
+.header-select {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.75rem;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid rgba(0,212,170,0.25);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.header-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 .faq-modal {
   position: fixed;
   inset: 0;
@@ -139,6 +163,42 @@ header {
   font-size: 0.9rem;
   color: var(--muted);
   line-height: 1.5;
+}
+
+.faq-cycles-title {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.faq-cycles {
+  margin: 0 0 0 1.25rem;
+  padding: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.faq-cycles li {
+  margin-bottom: 0.25rem;
+}
+
+.changelog-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.changelog-list li {
+  margin-bottom: 0.75rem;
+  padding-left: 0;
+}
+
+.changelog-list time {
+  color: var(--accent);
+  font-weight: 500;
 }
 
 .faq-close {
@@ -293,6 +353,13 @@ main {
   border-radius: 12px;
   max-width: 360px;
   font-size: 0.9rem;
+}
+
+.test-panel-intro {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  line-height: 1.4;
 }
 
 .test-row {
