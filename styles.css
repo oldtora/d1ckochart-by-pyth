@@ -344,3 +344,99 @@ footer span {
   margin: 0 0.35rem;
   color: var(--muted);
 }
+
+@media (max-width: 768px) {
+  :root {
+    --character-scale: 1.5;
+    --chart-offset-y: 2rem;
+  }
+
+  header {
+    padding: 0.5rem 1rem;
+  }
+
+  .logo {
+    font-size: 1rem;
+  }
+
+  .logo-img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .header-btn {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .faq-modal {
+    padding: 0.75rem;
+  }
+
+  .faq-content {
+    max-width: none;
+    width: 100%;
+    padding: 1.25rem 1.25rem 2rem;
+    margin: 0 0.5rem;
+  }
+
+  .faq-content h2 {
+    font-size: 1rem;
+  }
+
+  .faq-content p {
+    font-size: 0.85rem;
+  }
+
+  main {
+    padding: 0.75rem 1rem;
+  }
+
+  .price-value {
+    font-size: 1.6rem;
+  }
+
+  .price-value.loading {
+    font-size: 1.1rem;
+  }
+
+  .price-label {
+    font-size: 0.75rem;
+  }
+
+  .test-panel {
+    max-width: none;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .test-row span:first-child {
+    min-width: 6rem;
+  }
+
+  footer {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+
+  footer span {
+    margin: 0 0.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --character-scale: 1.25;
+    --chart-offset-y: 1rem;
+  }
+
+  .price-value {
+    font-size: 1.4rem;
+  }
+
+  .header-badges {
+    gap: 0.35rem;
+  }
+}
