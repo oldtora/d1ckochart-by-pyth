@@ -31,6 +31,15 @@ body {
   flex-direction: column;
 }
 
+body.test-mode {
+  max-height: none;
+  overflow-y: auto;
+}
+
+body.test-mode #priceChangeWrap {
+  display: none !important;
+}
+
 .bg-grid {
   position: fixed;
   inset: 0;
@@ -182,6 +191,20 @@ header {
   margin-bottom: 0.25rem;
 }
 
+.faq-note {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.faq-updated {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  opacity: 0.9;
+}
+
 .changelog-list {
   margin: 0;
   padding: 0;
@@ -262,6 +285,33 @@ main {
 .price-value.loading {
   color: var(--accent);
   font-size: 1.25rem;
+}
+
+.price-change-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.price-change-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.price-change {
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.price-change.up {
+  color: var(--accent);
+}
+
+.price-change.down {
+  color: var(--down);
 }
 
 .character-wrap {
@@ -390,6 +440,19 @@ main {
 .test-btn-up { background: rgba(0,212,170,0.15); border-color: var(--accent); color: var(--accent); }
 .test-btn-down { background: rgba(229,90,90,0.15); border-color: var(--down); color: var(--down); }
 
+.test-row-confetti {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0,212,170,0.15);
+}
+
+.test-confetti-desc {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+  line-height: 1.3;
+}
+
 footer {
   flex-shrink: 0;
   padding: 0.5rem 2rem;
@@ -505,5 +568,26 @@ footer span {
 
   .header-badges {
     gap: 0.35rem;
+  }
+}
+
+#confettiContainer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.confetti-particle {
+  position: absolute;
+  top: -10px;
+  border-radius: 2px;
+  animation: confetti-fall 2.5s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+  to {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0;
   }
 }

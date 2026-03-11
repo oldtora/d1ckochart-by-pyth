@@ -1,14 +1,16 @@
 const HERMES_URL = 'https://hermes.pyth.network';
 
 const FEEDS = [
-  { id: '0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43', label: 'BTC/USD', bandSize: 10000, maxFractionDigits: 0 },
-  { id: '0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace', label: 'ETH/USD', bandSize: 500, maxFractionDigits: 2 },
-  { id: '0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d', label: 'SOL/USD', bandSize: 20, maxFractionDigits: 2 },
-  { id: '0x0bbf28e9a841a1cc788f6a361b17ca072d0ea3098a1e5df1c3922d06719579ff', label: 'PYTH/USD', bandSize: 0.1, maxFractionDigits: 4 },
-  { id: '0x4279e31cc369bbcc2faf022b382b080e32a8e689ff20fbc530d2a603eb6cd98b', label: 'HYPE/USD', bandSize: 20, maxFractionDigits: 2 },
-  { id: '0x245f89fb8084840bd098d661a026032ee21062270003426797c9196d2d8d4e43', label: 'FOGO/USD', bandSize: 0.1, maxFractionDigits: 4 },
-  { id: '0x2f95862b045670cd22bee3114c39763a4a08beeb663b145d283c31d7d1101c4f', label: 'BNB/USD', bandSize: 100, maxFractionDigits: 2 },
+  { id: '0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43', label: 'BTC/USD', bandSize: 10000, maxFractionDigits: 0, celebrationStep: 5000 },
+  { id: '0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace', label: 'ETH/USD', bandSize: 500, maxFractionDigits: 2, celebrationStep: 500 },
+  { id: '0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d', label: 'SOL/USD', bandSize: 20, maxFractionDigits: 2, celebrationStep: 5 },
+  { id: '0x0bbf28e9a841a1cc788f6a361b17ca072d0ea3098a1e5df1c3922d06719579ff', label: 'PYTH/USD', bandSize: 0.1, maxFractionDigits: 4, celebrationStep: 0.05 },
+  { id: '0x4279e31cc369bbcc2faf022b382b080e32a8e689ff20fbc530d2a603eb6cd98b', label: 'HYPE/USD', bandSize: 20, maxFractionDigits: 2, celebrationStep: 5 },
+  { id: '0x245f89fb8084840bd098d661a026032ee21062270003426797c9196d2d8d4e43', label: 'FOGO/USD', bandSize: 0.1, maxFractionDigits: 4, celebrationStep: 0.05 },
+  { id: '0x2f95862b045670cd22bee3114c39763a4a08beeb663b145d283c31d7d1101c4f', label: 'BNB/USD', bandSize: 100, maxFractionDigits: 2, celebrationStep: 50 },
 ];
+
+const STORAGE_KEYS = { feed: 'd1ckochart_feed', head: 'd1ckochart_head' };
 
 const HEAD_OPTIONS = [
   { label: 'oldtora', src: 'img/1.png' },
@@ -30,6 +32,7 @@ const HEIGHT_MAX_PX = 100;
 let currentFeedIndex = 0;
 let lastPrice = null;
 let eventSource = null;
+let initialPrice = null;
 
 function getCurrentFeed() {
   return FEEDS[currentFeedIndex];
@@ -61,10 +64,56 @@ function getTInBand(priceUsd, bandSize) {
   return Math.max(0, Math.min(1, t));
 }
 
+function fireConfetti() {
+  const container = document.getElementById('confettiContainer') || (() => {
+    const el = document.createElement('div');
+    el.id = 'confettiContainer';
+    el.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(el);
+    return el;
+  })();
+  const colors = ['#00d4aa', '#e55a5a', '#f0c14b', '#6b6b7b', '#e8e6e3'];
+  const count = 45;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-particle';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.animationDelay = Math.random() * 0.5 + 's';
+    p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    p.style.width = (6 + Math.random() * 8) + 'px';
+    p.style.height = p.style.width;
+    container.appendChild(p);
+    setTimeout(() => p.remove(), 2500);
+  }
+}
+
+function updatePriceChangeDisplay(priceUsd) {
+  const el = document.getElementById('priceChangeEl');
+  if (!el) return;
+  if (priceUsd == null || initialPrice == null || initialPrice === 0) {
+    el.textContent = '—';
+    el.className = 'price-change';
+    return;
+  }
+  const pct = ((priceUsd - initialPrice) / initialPrice) * 100;
+  const sign = pct >= 0 ? '+' : '';
+  el.textContent = sign + pct.toFixed(2) + '%';
+  el.className = 'price-change ' + (pct >= 0 ? 'up' : 'down');
+}
+
 function setPrice(priceUsd) {
   if (priceUsd == null) return;
 
   const feed = getCurrentFeed();
+  if (initialPrice == null) initialPrice = priceUsd;
+
+  const step = feed.celebrationStep;
+  if (step != null && lastPrice != null) {
+    const prevBand = Math.floor(lastPrice / step) * step;
+    const currBand = Math.floor(priceUsd / step) * step;
+    if (prevBand !== currBand) fireConfetti();
+  }
+
   const t = getTInBand(priceUsd, feed.bandSize);
   const angle = ANGLE_MAX - t * (ANGLE_MAX - ANGLE_MIN);
   const heightPx = Math.round(HEIGHT_MIN_PX + t * (HEIGHT_MAX_PX - HEIGHT_MIN_PX));
@@ -82,6 +131,8 @@ function setPrice(priceUsd) {
   priceEl.textContent = formatPrice(priceUsd, feed);
   priceEl.classList.remove('loading', 'up', 'down');
   priceEl.classList.add(direction);
+
+  updatePriceChangeDisplay(priceUsd);
 
   indicatorWrap.classList.remove('up', 'down');
   indicatorWrap.classList.add(direction);
@@ -169,10 +220,13 @@ function switchFeed(index) {
   }
   currentFeedIndex = index;
   lastPrice = null;
+  initialPrice = null;
   if (sel) sel.selectedIndex = index;
   if (priceLabelEl) priceLabelEl.textContent = getCurrentFeed().label;
   priceEl.textContent = 'Loading...';
   priceEl.classList.add('loading');
+  updatePriceChangeDisplay(null);
+  try { localStorage.setItem(STORAGE_KEYS.feed, String(index)); } catch (_) {}
   const feed = getCurrentFeed();
   fetchLatestPrice(feed.id).then((p) => {
     if (p != null) setPrice(p);
@@ -212,6 +266,7 @@ function initHeadSelect() {
   select.addEventListener('change', () => {
     const idx = Number(select.value);
     headImg.src = HEAD_OPTIONS[idx].src;
+    try { localStorage.setItem(STORAGE_KEYS.head, String(idx)); } catch (_) {}
   });
 }
 
@@ -250,11 +305,17 @@ function initTestPanel() {
   const tValue = document.getElementById('testTValue');
   const btnUp = document.getElementById('testUp');
   const btnDown = document.getElementById('testDown');
+  const btnConfetti = document.getElementById('testConfetti');
   if (!panel || !sl) return;
 
   panel.hidden = false;
+  document.body.classList.add('test-mode');
+  const priceChangeWrap = document.getElementById('priceChangeWrap');
+  if (priceChangeWrap) priceChangeWrap.hidden = true;
   if (priceLabelEl) priceLabelEl.textContent = getCurrentFeed().label;
   priceEl.classList.remove('loading', 'up', 'down');
+
+  if (btnConfetti) btnConfetti.addEventListener('click', () => fireConfetti());
 
   let direction = 'up';
 
@@ -279,11 +340,30 @@ function initTestPanel() {
 }
 
 async function init() {
+  try {
+    const savedFeed = localStorage.getItem(STORAGE_KEYS.feed);
+    const fi = parseInt(savedFeed, 10);
+    if (!isNaN(fi) && fi >= 0 && fi < FEEDS.length) currentFeedIndex = fi;
+  } catch (_) {}
+
   initFaq();
   initChangelog();
   initTestEnvLink();
   initFeedSelect();
   initHeadSelect();
+
+  const headSelect = document.getElementById('headSelect');
+  const headImg = document.getElementById('headImg');
+  if (headSelect && headImg) {
+    try {
+      const savedHead = localStorage.getItem(STORAGE_KEYS.head);
+      const hi = parseInt(savedHead, 10);
+      if (!isNaN(hi) && hi >= 0 && hi < HEAD_OPTIONS.length) {
+        headSelect.selectedIndex = hi;
+        headImg.src = HEAD_OPTIONS[hi].src;
+      }
+    } catch (_) {}
+  }
 
   if (location.search.includes('test=1')) {
     initTestPanel();
