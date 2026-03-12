@@ -361,7 +361,10 @@ function initChangeRequest() {
       const prevLabel = submitBtn?.textContent;
       if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending…'; }
       try {
-        const res = await fetch('/api/send-change-request', {
+        const apiUrl = (typeof location !== 'undefined' && (location.protocol === 'http:' || location.protocol === 'https:'))
+          ? '/api/send-change-request'
+          : 'https://d1ckochart.vercel.app/api/send-change-request';
+        const res = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: raw }),
