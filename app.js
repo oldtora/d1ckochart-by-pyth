@@ -348,7 +348,7 @@ function initChangeRequest() {
   const close = document.getElementById('changeRequestClose');
   const form = document.getElementById('changeRequestForm');
   const textarea = document.getElementById('changeRequestText');
-  const submitBtn = form?.querySelector('button[type="submit"]');
+  const submitBtn = form?.querySelector('.change-request-submit');
   if (!btn || !modal) return;
   btn.addEventListener('click', () => { modal.hidden = false; });
   close.addEventListener('click', () => { modal.hidden = true; });
@@ -373,7 +373,10 @@ function initChangeRequest() {
           if (submitBtn) submitBtn.textContent = 'Sent ✓';
           setTimeout(() => { if (submitBtn) submitBtn.textContent = prevLabel; }, 2000);
         } else {
-          alert(data.error || 'Failed to send');
+          const msg = data.error === 'Server not configured'
+            ? 'Telegram bot not set up. Add TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in Vercel → Settings → Environment Variables, then redeploy.'
+            : (data.error || 'Failed to send');
+          alert(msg);
         }
       } catch (_) {
         alert('Network error');

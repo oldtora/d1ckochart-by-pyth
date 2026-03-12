@@ -2,7 +2,7 @@
  * Vercel serverless: send change request to Telegram bot.
  * Env: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID (both required).
  */
-module.exports = async (req, res) => {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -15,28 +15,31 @@ module.exports = async (req, res) => {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
 
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) {
-    return res.status(500).json({ ok: false, error: 'Server not configured' });
-  }
-
-  let body;
   try {
-    body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
-  } catch (_) {
-    return res.status(400).json({ ok: false, error: 'Invalid JSON' });
-  }
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+    if (!token || !chatId) {
+      return res.status(500).json({ ok: false, error: 'Server not configured' });
+    }
 
-  const text = (body.text || '').trim();
-  if (!text) {
-    return res.status(400).json({ ok: false, error: 'Empty text' });
-  }
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (_) {
+        return res.status(400).json({ ok: false, error: 'Invalid JSON' });
+      }
+    }
+    body = body || {};
 
-  const message = `📝 Change request:\n\n${text.slice(0, 4000)}`;
-  const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    const text = (body.text || '').trim();
+    if (!text) {
+      return res.status(400).json({ ok: false, error: 'Empty text' });
+    }
 
-  try {
+    const message = `📝 Change request:\n\n${text.slice(0, 4000)}`;
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
     const tgRes = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -53,6 +56,7 @@ module.exports = async (req, res) => {
     }
     return res.status(200).json({ ok: true });
   } catch (e) {
-    return res.status(502).json({ ok: false, error: 'Network error' });
+    console.error('send-change-request error:', e);
+    return res.status(500).json({ ok: false, error: e.message || 'Internal error' });
   }
 };
