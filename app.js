@@ -10,7 +10,7 @@ const FEEDS = [
   { id: '0x2f95862b045670cd22bee3114c39763a4a08beeb663b145d283c31d7d1101c4f', label: 'BNB/USD', bandSize: 100, maxFractionDigits: 2, celebrationStep: 50 },
 ];
 
-const STORAGE_KEYS = { feed: 'd1ckochart_feed', head: 'd1ckochart_head' };
+const STORAGE_KEYS = { feed: 'd1ckochart_feed', head: 'd1ckochart_head', variant: 'd1ckochart_variant' };
 
 const HEAD_OPTIONS = [
   { label: 'oldtora', src: 'img/1.png' },
@@ -23,13 +23,19 @@ const HEAD_OPTIONS = [
 const priceEl = document.getElementById('priceEl');
 const priceLabelEl = document.getElementById('priceLabel');
 const indicatorWrap = document.getElementById('indicatorWrap');
+const breastWrap = document.getElementById('breastWrap');
 
 const ANGLE_MIN = 60;
 const ANGLE_MAX = 120;
 const HEIGHT_MIN_PX = 26;
 const HEIGHT_MAX_PX = 100;
+const BREAST_MIN_PX = 20;
+const BREAST_MAX_PX = 36;
+const NIPPLE_MIN_PX = 4;
+const NIPPLE_MAX_PX = 8;
 
 let currentFeedIndex = 0;
+let chartVariant = 'male';
 let lastPrice = null;
 let eventSource = null;
 let initialPrice = null;
@@ -134,19 +140,40 @@ function setPrice(priceUsd) {
 
   updatePriceChangeDisplay(priceUsd);
 
-  indicatorWrap.classList.remove('up', 'down');
-  indicatorWrap.classList.add(direction);
-  indicatorWrap.style.height = `${heightPx}px`;
-  indicatorWrap.style.transform = `rotate(${angle}deg)`;
+  if (chartVariant === 'female' && breastWrap) {
+    const breastHeightPx = Math.round(BREAST_MIN_PX + t * (BREAST_MAX_PX - BREAST_MIN_PX));
+    const nipplePx = Math.round(NIPPLE_MIN_PX + t * (NIPPLE_MAX_PX - NIPPLE_MIN_PX));
+    breastWrap.style.setProperty('--breast-height', breastHeightPx + 'px');
+    breastWrap.style.setProperty('--nipple-size', nipplePx + 'px');
+    breastWrap.classList.remove('up', 'down');
+    breastWrap.classList.add(direction);
+  } else if (indicatorWrap) {
+    indicatorWrap.classList.remove('up', 'down');
+    indicatorWrap.classList.add(direction);
+    indicatorWrap.style.height = `${heightPx}px`;
+    indicatorWrap.style.transform = `rotate(${angle}deg)`;
+  }
 }
 
 function setIndicatorFromT(t, direction) {
   const angle = ANGLE_MAX - t * (ANGLE_MAX - ANGLE_MIN);
   const heightPx = Math.round(HEIGHT_MIN_PX + t * (HEIGHT_MAX_PX - HEIGHT_MIN_PX));
-  indicatorWrap.classList.remove('up', 'down');
-  indicatorWrap.classList.add(direction);
-  indicatorWrap.style.height = `${heightPx}px`;
-  indicatorWrap.style.transform = `rotate(${angle}deg)`;
+  if (indicatorWrap) {
+    indicatorWrap.classList.remove('up', 'down');
+    indicatorWrap.classList.add(direction);
+    indicatorWrap.style.height = `${heightPx}px`;
+    indicatorWrap.style.transform = `rotate(${angle}deg)`;
+  }
+}
+
+function setBreastFromT(t, direction) {
+  if (!breastWrap) return;
+  const heightPx = Math.round(BREAST_MIN_PX + t * (BREAST_MAX_PX - BREAST_MIN_PX));
+  const nipplePx = Math.round(NIPPLE_MIN_PX + t * (NIPPLE_MAX_PX - NIPPLE_MIN_PX));
+  breastWrap.style.setProperty('--breast-height', heightPx + 'px');
+  breastWrap.style.setProperty('--nipple-size', nipplePx + 'px');
+  breastWrap.classList.remove('up', 'down');
+  breastWrap.classList.add(direction);
 }
 
 async function fetchLatestPrice(feedId) {
@@ -290,6 +317,72 @@ function initChangelog() {
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.hidden = true; });
 }
 
+function initVariantSwitch() {
+  const btnMale = document.getElementById('variantMale');
+  const btnFemale = document.getElementById('variantFemale');
+  if (!btnMale || !btnFemale) return;
+  function setVariant(v) {
+    chartVariant = v;
+    document.body.classList.remove('male', 'female');
+    document.body.classList.add(v);
+    btnMale.setAttribute('aria-pressed', v === 'male' ? 'true' : 'false');
+    btnFemale.setAttribute('aria-pressed', v === 'female' ? 'true' : 'false');
+    try { localStorage.setItem(STORAGE_KEYS.variant, v); } catch (_) {}
+    if (lastPrice != null) setPrice(lastPrice);
+    else if (chartVariant === 'female' && breastWrap) setBreastFromT(0.5, 'up');
+  }
+  btnMale.addEventListener('click', () => setVariant('male'));
+  btnFemale.addEventListener('click', () => setVariant('female'));
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.variant);
+    if (saved === 'female' || saved === 'male') setVariant(saved);
+    else setVariant('male');
+  } catch (_) {
+    setVariant('male');
+  }
+}
+
+function initChangeRequest() {
+  const btn = document.getElementById('changeRequestBtn');
+  const modal = document.getElementById('changeRequestModal');
+  const close = document.getElementById('changeRequestClose');
+  const form = document.getElementById('changeRequestForm');
+  const textarea = document.getElementById('changeRequestText');
+  const submitBtn = form?.querySelector('button[type="submit"]');
+  if (!btn || !modal) return;
+  btn.addEventListener('click', () => { modal.hidden = false; });
+  close.addEventListener('click', () => { modal.hidden = true; });
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.hidden = true; });
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const raw = textarea?.value?.trim();
+      if (!raw) return;
+      const prevLabel = submitBtn?.textContent;
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending…'; }
+      try {
+        const res = await fetch('/api/send-change-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: raw }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) {
+          if (textarea) textarea.value = '';
+          modal.hidden = true;
+          if (submitBtn) submitBtn.textContent = 'Sent ✓';
+          setTimeout(() => { if (submitBtn) submitBtn.textContent = prevLabel; }, 2000);
+        } else {
+          alert(data.error || 'Failed to send');
+        }
+      } catch (_) {
+        alert('Network error');
+      }
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = prevLabel; }
+    });
+  }
+}
+
 function initTestEnvLink() {
   const link = document.getElementById('testEnvLink');
   if (!link) return;
@@ -330,7 +423,8 @@ function initTestPanel() {
     priceEl.textContent = formatPrice(valueInBand, feed);
     priceEl.classList.remove('up', 'down');
     priceEl.classList.add(direction);
-    setIndicatorFromT(t, direction);
+    if (chartVariant === 'female') setBreastFromT(t, direction);
+    else setIndicatorFromT(t, direction);
   }
 
   sl.addEventListener('input', apply);
@@ -348,9 +442,11 @@ async function init() {
 
   initFaq();
   initChangelog();
+  initChangeRequest();
   initTestEnvLink();
   initFeedSelect();
   initHeadSelect();
+  initVariantSwitch();
 
   const headSelect = document.getElementById('headSelect');
   const headImg = document.getElementById('headImg');

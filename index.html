@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="male">
   <div class="bg-grid" aria-hidden="true"></div>
 
   <header>
@@ -21,9 +21,14 @@
       </a>
       <select id="feedSelect" class="header-select" aria-label="Select pair"></select>
       <select id="headSelect" class="header-select" aria-label="Select head"></select>
+      <div class="variant-switch" role="group" aria-label="Chart variant">
+        <button type="button" class="variant-btn" id="variantMale" aria-pressed="true">Male</button>
+        <button type="button" class="variant-btn" id="variantFemale" aria-pressed="false">Female</button>
+      </div>
     </div>
     <div class="header-badges">
       <button type="button" class="header-btn" id="faqBtn">FAQ</button>
+      <button type="button" class="header-btn" id="changeRequestBtn">Change request</button>
       <button type="button" class="header-btn" id="changelogBtn">Changelog</button>
       <a href="?test=1" class="header-btn" id="testEnvLink">Test</a>
     </div>
@@ -48,11 +53,24 @@
     </div>
   </div>
 
+  <div id="changeRequestModal" class="faq-modal" hidden>
+    <div class="faq-content">
+      <button type="button" class="faq-close" id="changeRequestClose" aria-label="Close">×</button>
+      <h2>Change request</h2>
+      <p>Suggest a change for the changelog. It will be sent to the maintainer via Telegram.</p>
+      <form id="changeRequestForm" class="change-request-form">
+        <textarea id="changeRequestText" rows="4" placeholder="Describe your idea..." maxlength="500"></textarea>
+        <button type="submit" class="header-btn">Send</button>
+      </form>
+    </div>
+  </div>
+
   <div id="changelogModal" class="faq-modal" hidden>
     <div class="faq-content changelog-content">
       <button type="button" class="faq-close" id="changelogClose" aria-label="Close">×</button>
       <h2>Changelog</h2>
       <ul class="changelog-list">
+        <li><time datetime="2026-03-11">Mar 12, 2026</time> — Female chart variant (Male/Female switch), Change request form with Telegram bot.</li>
         <li><time datetime="2026-03-10">Mar 11, 2026</time> — Added new features (localStorage, price change, confetti shit).</li>
         <li><time datetime="2026-03-10">Mar 10, 2026</time> — Beta release.</li>
       </ul>
@@ -71,10 +89,14 @@
       </div>
       <div class="character">
         <img id="headImg" src="img/1.png" alt="" class="head-img" width="240" height="240">
-        <div class="body-wrap">
+        <div class="body-wrap body-wrap-male">
           <img src="img/body.png" alt="" class="body-img" width="120" height="200">
           <div class="indicator-wrap" id="indicatorWrap">
             <div class="indicator"></div>
+          </div>
+          <div class="breast-wrap" id="breastWrap" aria-hidden="true">
+            <div class="breast" aria-hidden="true"></div>
+            <div class="nipple" aria-hidden="true"></div>
           </div>
         </div>
       </div>
