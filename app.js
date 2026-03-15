@@ -109,6 +109,7 @@ function updatePriceChangeDisplay(priceUsd) {
 
 function setPrice(priceUsd) {
   if (priceUsd == null) return;
+  if (!priceEl) return;
 
   const feed = getCurrentFeed();
   if (initialPrice == null) initialPrice = priceUsd;
@@ -179,11 +180,19 @@ function setBreastFromT(t, direction) {
 async function fetchLatestPrice(feedId) {
   const id = feedId || getCurrentFeed().id;
   const url = `${HERMES_URL}/v2/updates/price/latest?ids[]=${id}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Pyth API error');
-  const data = await res.json();
-  const parsed = data?.parsed?.[0];
-  return parsePythPrice(parsed);
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!res.ok) throw new Error('Pyth API error');
+    const data = await res.json();
+    const parsed = data?.parsed?.[0];
+    return parsePythPrice(parsed);
+  } catch (e) {
+    clearTimeout(t);
+    throw e;
+  }
 }
 
 function connectStream(feedId) {
@@ -250,8 +259,10 @@ function switchFeed(index) {
   initialPrice = null;
   if (sel) sel.selectedIndex = index;
   if (priceLabelEl) priceLabelEl.textContent = getCurrentFeed().label;
-  priceEl.textContent = 'Loading...';
-  priceEl.classList.add('loading');
+  if (priceEl) {
+    priceEl.textContent = 'Loading...';
+    priceEl.classList.add('loading');
+  }
   updatePriceChangeDisplay(null);
   try { localStorage.setItem(STORAGE_KEYS.feed, String(index)); } catch (_) {}
   const feed = getCurrentFeed();
@@ -297,14 +308,36 @@ function initHeadSelect() {
   });
 }
 
+function initBurgerMenu() {
+  const burger = document.getElementById('burgerBtn');
+  const header = document.querySelector('header');
+  const nav = document.getElementById('headerNav');
+  if (!burger || !header || !nav) return;
+  burger.addEventListener('click', () => {
+    const open = header.classList.toggle('is-nav-open');
+    burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  nav.addEventListener('click', (e) => {
+    if (e.target.closest('a, .header-btn') && !e.target.closest('.variant-switch')) {
+      header.classList.remove('is-nav-open');
+      burger.setAttribute('aria-expanded', 'false');
+    }
+  });
+  document.addEventListener('click', (e) => {
+    if (header.classList.contains('is-nav-open') && !header.contains(e.target)) {
+      header.classList.remove('is-nav-open');
+      burger.setAttribute('aria-expanded', 'false');
+    }
+  });
+}
+
 function initFaq() {
   const btn = document.getElementById('faqBtn');
   const modal = document.getElementById('faqModal');
   const close = document.getElementById('faqClose');
   if (!btn || !modal) return;
   btn.addEventListener('click', () => { modal.hidden = false; });
-  close.addEventListener('click', () => { modal.hidden = true; });
-  modal.addEventListener('click', (e) => { if (e.target === modal) modal.hidden = true; });
+  if (close) close.addEventListener('click', () => { modal.hidden = true; });
 }
 
 function initChangelog() {
@@ -313,8 +346,21 @@ function initChangelog() {
   const close = document.getElementById('changelogClose');
   if (!btn || !modal) return;
   btn.addEventListener('click', () => { modal.hidden = false; });
-  close.addEventListener('click', () => { modal.hidden = true; });
-  modal.addEventListener('click', (e) => { if (e.target === modal) modal.hidden = true; });
+  if (close) close.addEventListener('click', () => { modal.hidden = true; });
+}
+
+function initChartOverlay() {
+  const btn = document.getElementById('chartBtn');
+  const modal = document.getElementById('chartModal');
+  const close = document.getElementById('chartModalClose');
+  const backdrop = document.getElementById('chartModalBackdrop');
+  if (!btn || !modal) return;
+  btn.addEventListener('click', () => {
+    modal.hidden = false;
+    if (typeof window.initChartModal === 'function') window.initChartModal();
+    if (typeof window.chartModalOnShow === 'function') window.chartModalOnShow();
+  });
+  if (close) close.addEventListener('click', () => { modal.hidden = true; });
 }
 
 function initVariantSwitch() {
@@ -351,8 +397,11 @@ function initChangeRequest() {
   const submitBtn = form?.querySelector('.change-request-submit');
   if (!btn || !modal) return;
   btn.addEventListener('click', () => { modal.hidden = false; });
-  close.addEventListener('click', () => { modal.hidden = true; });
-  modal.addEventListener('click', (e) => { if (e.target === modal) modal.hidden = true; });
+  if (close) close.addEventListener('click', () => { modal.hidden = true; });
+  function updateSubmitState() {
+    if (submitBtn && textarea) submitBtn.disabled = !textarea.value.trim();
+  }
+  if (textarea) textarea.addEventListener('input', updateSubmitState);
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -372,6 +421,7 @@ function initChangeRequest() {
         const data = await res.json().catch(() => ({}));
         if (res.ok && data.ok) {
           if (textarea) textarea.value = '';
+          updateSubmitState();
           modal.hidden = true;
           if (submitBtn) submitBtn.textContent = 'Sent ✓';
           setTimeout(() => { if (submitBtn) submitBtn.textContent = prevLabel; }, 2000);
@@ -393,7 +443,7 @@ function initTestEnvLink() {
   const link = document.getElementById('testEnvLink');
   if (!link) return;
   if (location.search.includes('test=1')) {
-    link.textContent = 'Real chart';
+    link.textContent = 'Back';
     link.href = location.pathname || '/';
   }
 }
@@ -446,8 +496,10 @@ async function init() {
     if (!isNaN(fi) && fi >= 0 && fi < FEEDS.length) currentFeedIndex = fi;
   } catch (_) {}
 
+  initBurgerMenu();
   initFaq();
   initChangelog();
+  initChartOverlay();
   initChangeRequest();
   initTestEnvLink();
   initFeedSelect();
@@ -481,10 +533,29 @@ async function init() {
       startPolling();
     }
   } catch (e) {
-    priceEl.textContent = 'Load error';
-    priceEl.classList.remove('loading');
+    if (priceEl) {
+      priceEl.textContent = 'Load error';
+      priceEl.classList.remove('loading');
+    }
     setTimeout(init, 5000);
   }
 }
 
-init();
+function runApp() {
+  try {
+    init();
+  } catch (err) {
+    console.error('d1ckochart init error:', err);
+    const el = document.getElementById('priceEl');
+    if (el) {
+      el.textContent = 'Init error';
+      el.classList.remove('loading');
+    }
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', runApp);
+} else {
+  runApp();
+}

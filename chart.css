@@ -1,0 +1,534 @@
+/* Terminal / Pump.fun style chart page. Global * and body only on standalone chart page. */
+:root {
+  --chart-bg: #0a0a0e;
+  --chart-surface: #12121a;
+  --chart-border: #1e1e2a;
+  --chart-up: #00d4aa;
+  --chart-down: #e55a5a;
+  --chart-text: #e8e6e3;
+  --chart-muted: #6b6b7b;
+}
+
+/* Only apply reset and body when we're on the standalone chart page (chart.html) */
+body.chart-standalone * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body.chart-standalone {
+  font-family: 'Space Grotesk', 'JetBrains Mono', sans-serif;
+  background: var(--chart-bg);
+  color: var(--chart-text);
+  min-height: 100vh;
+  overflow: auto;
+}
+
+.chart-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 1000px;
+  max-height: 85vh;
+  margin: 1.5rem auto;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: var(--chart-surface);
+}
+
+.chart-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: var(--chart-surface);
+  overflow: visible;
+}
+
+.chart-back {
+  color: var(--chart-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.chart-back:hover {
+  color: var(--chart-up);
+}
+
+.chart-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.chart-header-prices {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+}
+
+.chart-price-label {
+  color: var(--chart-muted);
+  margin-right: 0.25rem;
+}
+
+.chart-price-value {
+  font-weight: 600;
+}
+
+.chart-price-value.up {
+  color: var(--chart-up);
+}
+
+.chart-price-value.down {
+  color: var(--chart-down);
+}
+
+.chart-price-min {
+  color: var(--chart-down);
+  font-weight: 600;
+}
+
+.chart-price-max {
+  color: var(--chart-up);
+  font-weight: 600;
+}
+
+.chart-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-reset-btn {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--chart-border);
+  background: var(--chart-bg);
+  color: var(--chart-muted);
+  font-family: inherit;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.chart-reset-btn:hover {
+  color: var(--chart-up);
+  border-color: var(--chart-up);
+}
+
+.chart-reset-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  position: relative;
+  overflow: visible;
+}
+
+.chart-help-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--chart-border);
+  background: var(--chart-bg);
+  color: var(--chart-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: help;
+  line-height: 1;
+}
+
+.chart-help-trigger:hover {
+  color: var(--chart-up);
+  border-color: var(--chart-up);
+}
+
+.chart-help-popup {
+  position: fixed;
+  padding: 1rem 1.25rem;
+  width: 320px;
+  max-width: min(320px, calc(100vw - 2rem));
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--chart-text);
+  background: var(--chart-surface);
+  border: 1px solid var(--chart-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s, visibility 0.15s;
+  z-index: 100000;
+}
+
+.chart-help-popup.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.chart-feed-select {
+  background: var(--chart-bg);
+  border: 1px solid var(--chart-border);
+  color: var(--chart-text);
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chart-feed-select:focus {
+  outline: none;
+  border-color: var(--chart-up);
+}
+
+.chart-price {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.chart-price.up {
+  color: var(--chart-up);
+}
+
+.chart-price.down {
+  color: var(--chart-down);
+}
+
+.chart-header-right {
+  min-width: 60px;
+}
+
+.chart-main {
+  flex: 1;
+  display: flex;
+  min-height: 320px;
+  max-height: 52vh;
+  min-width: 0;
+}
+
+.chart-canvas-wrap {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  background: var(--chart-bg);
+}
+
+.chart-canvas-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url('img/pyth.svg');
+  background-size: 85% 85%;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.5;
+  filter: brightness(0.45) blur(4px);
+}
+
+#chartCanvas {
+  display: block;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-rocket-img {
+  position: absolute;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+/* Price axis: overflow visible so rotated slider track is not clipped */
+.chart-price-axis {
+  flex-shrink: 0;
+  width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0;
+  background: var(--chart-surface);
+  min-height: 0;
+  overflow: visible;
+}
+
+.chart-price-slider-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--chart-muted);
+  flex-shrink: 0;
+}
+
+/* Height and input width set in JS to 80% of .chart-main height (updateTimeSliderWidth). */
+.chart-price-slider-wrap {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-height: 100px;
+}
+
+.chart-price-slider-wrap .chart-price-slider {
+  height: 10px;
+  /* width set in JS = 80% of chart height */
+}
+
+/* Range track runs along WIDTH, so we need width = track length. After rotate(-90deg), width becomes vertical. */
+.chart-price-slider {
+  display: block;
+  width: 100%;
+  height: 10px;
+  min-width: 80px;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border-radius: 4px;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.chart-price-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.chart-price-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--chart-up);
+  cursor: pointer;
+  border: 2px solid var(--chart-bg);
+  box-sizing: border-box;
+  /* центр по треку (трек 10px): (10 - 22) / 2 = -6px */
+  margin-top: -6px;
+}
+
+.chart-price-slider::-moz-range-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.chart-price-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--chart-up);
+  cursor: pointer;
+  border: 2px solid var(--chart-bg);
+  box-sizing: border-box;
+  /* Firefox: центр по треку */
+  margin: 0;
+}
+
+/* Нижний ряд: слайдер времени — позиция задаётся здесь: padding, justify-content, margin, margin-left (сдвиг вправо). */
+.chart-slider-row {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem 0.5rem 2rem;
+  background: var(--chart-surface);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.chart-time-slider-wrap {
+  margin: 0;
+  margin-left: 2.25rem; /* сдвиг слайдера времени вправо — меняй здесь */
+  margin-right: auto;
+  /* ширина блока задаётся в JS: updateTimeSliderWidth() → 80% от .chart-main */
+}
+
+.chart-time-slider-wrap input[type="range"] {
+  width: 100%;
+  height: 10px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  outline: none;
+  touch-action: none; /* плавное перетаскивание без задержки/скролла */
+}
+
+.chart-time-slider-wrap input[type="range"]::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.chart-time-slider-wrap input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--chart-up);
+  cursor: pointer;
+  border: 2px solid var(--chart-surface);
+  margin-top: -6px;
+}
+
+.chart-time-slider-wrap input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--chart-up);
+  cursor: pointer;
+  border: 2px solid var(--chart-surface);
+}
+
+/* Chart: mobile */
+@media (max-width: 768px) {
+  .chart-overlay {
+    padding: 0.75rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chart-overlay .chart-page-modal {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    max-height: 90vh;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .chart-overlay .chart-page-modal .chart-main {
+    min-height: 220px;
+    max-height: 50vh;
+  }
+
+  .chart-header {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding: 0.6rem 1rem;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .chart-title-wrap {
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+  }
+
+  .chart-feed-select {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.6rem;
+    max-width: 100%;
+  }
+
+  .chart-header-prices {
+    gap: 0.6rem;
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
+
+  .chart-header-actions {
+    gap: 0.5rem;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  .chart-reset-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .chart-reset-btn,
+  .chart-close-overlay {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.7rem;
+    min-height: 36px;
+  }
+
+  .chart-help-trigger {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chart-price-axis {
+    width: 44px;
+    padding: 0.35rem 0;
+  }
+
+  .chart-price-slider-wrap {
+    width: 36px;
+    min-height: 80px;
+  }
+
+  .chart-slider-row {
+    padding: 0.5rem 1rem 0.5rem 1rem;
+    align-items: center;
+  }
+
+  .chart-time-slider-wrap {
+    margin-left: 0.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-overlay {
+    padding: 0.5rem;
+  }
+
+  .chart-header {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .chart-header-prices {
+    font-size: 0.7rem;
+    gap: 0.5rem;
+  }
+
+  .chart-overlay .chart-page-modal .chart-main {
+    min-height: 180px;
+    max-height: 45vh;
+  }
+
+  .chart-price-axis {
+    width: 40px;
+  }
+
+  .chart-slider-row {
+    padding: 0.4rem 0.75rem;
+  }
+
+  .chart-time-slider-wrap {
+    margin-left: 0.25rem;
+  }
+}

@@ -6,6 +6,7 @@
   <title>d1ckochart - by pyth</title>
   <link rel="icon" href="icon.ico" type="image/x-icon">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="chart.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -19,29 +20,36 @@
         <img src="img/1.png" alt="" class="logo-img" width="32" height="32">
         <span>d1ckochart</span>
       </a>
+      <button type="button" class="header-btn header-btn-chart" id="chartBtn">Chart</button>
       <select id="feedSelect" class="header-select" aria-label="Select pair"></select>
-      <select id="headSelect" class="header-select" aria-label="Select head"></select>
-      <div class="variant-switch" role="group" aria-label="Chart variant">
-        <button type="button" class="variant-btn" id="variantMale" aria-pressed="true">Male</button>
-        <button type="button" class="variant-btn" id="variantFemale" aria-pressed="false">Female</button>
-      </div>
+      <nav class="header-nav" id="headerNav" aria-label="Main">
+        <select id="headSelect" class="header-select" aria-label="Select head"></select>
+        <div class="variant-switch" role="group" aria-label="Chart variant">
+          <button type="button" class="variant-btn" id="variantMale" aria-pressed="true">Male</button>
+          <button type="button" class="variant-btn" id="variantFemale" aria-pressed="false">Female</button>
+        </div>
+        <div class="header-badges">
+          <button type="button" class="header-btn" id="faqBtn">FAQ</button>
+          <button type="button" class="header-btn" id="changeRequestBtn">Change request</button>
+          <button type="button" class="header-btn" id="changelogBtn">Changelog</button>
+          <a href="?test=1" class="header-btn" id="testEnvLink">Test</a>
+        </div>
+      </nav>
     </div>
-    <div class="header-badges">
-      <button type="button" class="header-btn" id="faqBtn">FAQ</button>
-      <button type="button" class="header-btn" id="changeRequestBtn">Change request</button>
-      <button type="button" class="header-btn" id="changelogBtn">Changelog</button>
-      <a href="?test=1" class="header-btn" id="testEnvLink">Test</a>
-    </div>
+    <button type="button" class="header-burger" id="burgerBtn" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </header>
 
   <div id="faqModal" class="faq-modal" hidden>
+    <div class="faq-modal-backdrop" aria-hidden="true"></div>
     <div class="faq-content">
       <button type="button" class="faq-close" id="faqClose" aria-label="Close">×</button>
       <h2>FAQ</h2>
-      <p>Indicator moves with real-time price (Pyth Network). Price up → indicator up; price down → indicator down. Green = rising, red = falling. Position within the band sets angle and size.</p>
-      <p class="faq-cycles-title"><strong>Cycles (band per pair):</strong></p>
+      <p>Live from Pyth: price up → indicator up, price down → down. Green = pump, red = dump. Position in the band sets angle and size.</p>
+      <p class="faq-cycles-title"><strong>Band (cycle per pair):</strong></p>
       <ul class="faq-cycles">
-        <li>BTC 0–10,000</li>
+        <li>BTC 0–10k</li>
         <li>ETH 0–500</li>
         <li>SOL 0–20</li>
         <li>BNB 0–100</li>
@@ -49,31 +57,77 @@
         <li>PYTH 0–0.1</li>
         <li>FOGO 0–0.1</li>
       </ul>
-      <p class="faq-note"><strong>Price change %</strong> is since page load (first price vs current).</p>
+      <p class="faq-note"><strong>Chart</strong> — live graph, sliders for price zoom and time window.</p>
+      <p class="faq-note"><strong>Male/Female</strong> — switch variant.</p>
+      <p class="faq-note"><strong>Price change %</strong> — from first price on load to current.</p>
     </div>
   </div>
 
   <div id="changeRequestModal" class="faq-modal" hidden>
+    <div class="faq-modal-backdrop" aria-hidden="true"></div>
     <div class="faq-content">
       <button type="button" class="faq-close" id="changeRequestClose" aria-label="Close">×</button>
       <h2>Change request</h2>
-      <p>Suggest a change for the changelog. It will be sent to the maintainer via Telegram.</p>
+      <p>Suggest a change for the d1ckochart.</p>
       <form id="changeRequestForm" class="change-request-form">
         <textarea id="changeRequestText" rows="4" placeholder="Describe your idea..." maxlength="500"></textarea>
-        <button type="submit" class="change-request-submit">Send</button>
+        <p class="change-request-hint">Empty message won't be sent.</p>
+        <button type="submit" class="change-request-submit" disabled>Send</button>
       </form>
     </div>
   </div>
 
   <div id="changelogModal" class="faq-modal" hidden>
+    <div class="faq-modal-backdrop" aria-hidden="true"></div>
     <div class="faq-content changelog-content">
       <button type="button" class="faq-close" id="changelogClose" aria-label="Close">×</button>
       <h2>Changelog</h2>
       <ul class="changelog-list">
-        <li><time datetime="2026-03-11">Mar 12, 2026</time> — Female chart variant (Male/Female switch), Change request form with Telegram bot.</li>
-        <li><time datetime="2026-03-10">Mar 11, 2026</time> — Added new features (localStorage, price change, confetti shit).</li>
+        <li><time datetime="2026-03-16">Mar 16, 2026</time> — Added: Chart. Fixes: exist features.</li>
+        <li><time datetime="2026-03-11">Mar 12, 2026</time> — Added: Female variant (switch), change request button</li>
+        <li><time datetime="2026-03-10">Mar 11, 2026</time> — Added: localStorage, price change %, confetti animation.</li>
         <li><time datetime="2026-03-10">Mar 10, 2026</time> — Beta release.</li>
       </ul>
+    </div>
+  </div>
+
+  <div id="chartModal" class="chart-overlay" hidden>
+    <div class="chart-overlay-backdrop" id="chartModalBackdrop" aria-hidden="true"></div>
+    <div class="chart-page chart-page-modal">
+      <header class="chart-header">
+        <div class="chart-title-wrap">
+          <select id="chartFeedSelect" class="chart-feed-select" aria-label="Select pair"></select>
+          <div class="chart-header-prices">
+            <span class="chart-price-now"><span class="chart-price-label">Price</span> <span id="chartPriceNow" class="chart-price-value">—</span></span>
+            <span class="chart-min-max"><span class="chart-price-label">Min</span> <span id="chartMinPrice" class="chart-price-min">—</span></span>
+            <span class="chart-min-max"><span class="chart-price-label">Max</span> <span id="chartMaxPrice" class="chart-price-max">—</span></span>
+          </div>
+        </div>
+        <div class="chart-header-actions">
+          <span class="chart-reset-wrap">
+            <span class="chart-help-trigger" id="chartHelpTrigger" aria-label="Chart help">?</span>
+            <button type="button" class="chart-reset-btn" id="chartReset" aria-label="Reset chart">Reset</button>
+            <span class="chart-help-popup" id="chartHelpPopup" role="tooltip">Live chart by Pyth Price Feeds. Drag the chart to pan. Right slider: price zoom. Bottom slider: time window (center = 1 min, left = narrower, right = wider). Reset: back to default.</span>
+          </span>
+          <button type="button" class="chart-close-overlay" id="chartModalClose" aria-label="Close">Close</button>
+        </div>
+      </header>
+      <div class="chart-main">
+        <div class="chart-canvas-wrap">
+          <canvas id="chartCanvas"></canvas>
+          <img id="chartRocket" src="img/p.png" alt="" class="chart-rocket-img" hidden>
+        </div>
+        <aside class="chart-price-axis" aria-label="Price zoom">
+          <div class="chart-price-slider-wrap">
+            <input type="range" id="priceZoomSlider" min="0" max="100" value="50" step="0.5" aria-label="Price scale zoom" class="chart-price-slider">
+          </div>
+        </aside>
+      </div>
+      <div class="chart-slider-row chart-slider-time">
+        <div class="chart-time-slider-wrap" id="timeSliderWrap">
+          <input type="range" id="timeZoomSlider" min="0" max="100" value="50" step="0.5" aria-label="Time window (narrow–wide)">
+        </div>
+      </div>
     </div>
   </div>
 
@@ -133,8 +187,10 @@
     <a href="https://x.com/PythNetwork" target="_blank" rel="noopener">Pyth</a>
     <span aria-hidden="true">·</span>
     <a href="https://x.com/oldtora2077" target="_blank" rel="noopener">oldtora</a>
+    <p class="footer-watermark" aria-label="Ownership">© d1ckochart · by oldtora</p>
   </footer>
 
   <script src="app.js"></script>
+  <script src="chart.js"></script>
 </body>
 </html>
